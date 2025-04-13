@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -46,18 +45,20 @@ type FormValues = z.infer<typeof formSchema>;
 interface TaskCreateFormProps {
   onSubmit: (data: FormValues) => void;
   onCancel: () => void;
+  initialDate?: Date;
 }
 
 const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
   onSubmit,
   onCancel,
+  initialDate,
 }) => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
       description: '',
-      dueDate: new Date(),
+      dueDate: initialDate || new Date(),
       priority: 'medium' as TaskPriority,
       status: 'pending' as TaskStatus,
       assignee: '',
@@ -133,6 +134,7 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
