@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
@@ -24,18 +24,25 @@ interface SidebarItem {
   title: string;
   icon: React.ElementType;
   path: string;
-  isActive: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isMobile }) => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
   const sidebarItems: SidebarItem[] = [
-    { title: 'Dashboard', icon: LayoutDashboard, path: '/', isActive: true },
-    { title: 'Tasks', icon: CheckSquare, path: '/tasks', isActive: false },
-    { title: 'Calendar', icon: Calendar, path: '/calendar', isActive: false },
-    { title: 'Team', icon: Users, path: '/team', isActive: false },
-    { title: 'Analytics', icon: BarChart3, path: '/analytics', isActive: false },
-    { title: 'Settings', icon: Settings, path: '/settings', isActive: false },
+    { title: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { title: 'Tasks', icon: CheckSquare, path: '/tasks' },
+    { title: 'Calendar', icon: Calendar, path: '/calendar' },
+    { title: 'Team', icon: Users, path: '/team' },
+    { title: 'Analytics', icon: BarChart3, path: '/analytics' },
+    { title: 'Settings', icon: Settings, path: '/settings' },
   ];
+
+  const isActive = (path: string) => {
+    return currentPath === path || 
+      (path !== '/' && currentPath.startsWith(path));
+  };
 
   return (
     <>
@@ -79,24 +86,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isMobile }) =>
           {/* Nav Items */}
           <nav className="flex-1 py-4 px-2 overflow-y-auto">
             <ul className="space-y-1">
-              {sidebarItems.map((item) => (
-                <li key={item.title}>
-                  <Link 
-                    to={item.path}
-                    className={cn(
-                      "sidebar-item", 
-                      item.isActive && "active"
-                    )}
-                  >
-                    <item.icon size={20} />
-                    <span className={cn("transition-opacity", 
-                      !isOpen && !isMobile ? "opacity-0 w-0" : "opacity-100"
-                    )}>
-                      {item.title}
-                    </span>
-                  </Link>
-                </li>
-              ))}
+              {sidebarItems.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <li key={item.title}>
+                    <Link 
+                      to={item.path}
+                      className={cn(
+                        "sidebar-item", 
+                        active && "active"
+                      )}
+                    >
+                      <item.icon size={20} />
+                      <span className={cn("transition-opacity", 
+                        !isOpen && !isMobile ? "opacity-0 w-0" : "opacity-100"
+                      )}>
+                        {item.title}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
