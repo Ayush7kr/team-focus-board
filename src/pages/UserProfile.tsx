@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Camera, Save, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Camera, Save, Eye, EyeOff, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,18 +14,21 @@ import { useToast } from '@/components/ui/use-toast';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useUser } from '@/contexts/UserContext';
 
 const UserProfile = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, updateUser, logout } = useUser();
   
   // User profile state
   const [profileData, setProfileData] = useState({
-    fullName: 'John Smith',
-    email: 'john@example.com',
-    role: 'Student',
-    phone: '(123) 456-7890',
-    bio: 'Computer Science student with interests in machine learning and web development.',
-    avatarUrl: 'https://i.pravatar.cc/150?img=30',
+    fullName: user.fullName,
+    email: user.email,
+    role: user.role,
+    phone: user.phone,
+    bio: user.bio,
+    avatarUrl: user.avatarUrl,
     notifications: {
       email: true,
       app: true,
@@ -95,6 +99,16 @@ const UserProfile = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    // Update the context with the new user data
+    updateUser({
+      fullName: profileData.fullName,
+      email: profileData.email,
+      role: profileData.role,
+      phone: profileData.phone,
+      bio: profileData.bio,
+      avatarUrl: profileData.avatarUrl
+    });
+    
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
@@ -111,6 +125,11 @@ const UserProfile = () => {
       ...prev,
       avatarUrl: url
     }));
+    
+    // Update the context with the new avatar
+    updateUser({
+      avatarUrl: url
+    });
     
     toast({
       title: "Avatar updated",
@@ -148,6 +167,16 @@ const UserProfile = () => {
         confirm: ''
       });
     }, 1000);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account",
+    });
+    navigate('/login');
   };
 
   return (
@@ -445,8 +474,9 @@ const UserProfile = () => {
               <Button variant="outline" className="w-full justify-start">
                 Linked Accounts
               </Button>
-              <Button variant="destructive" className="w-full justify-start">
-                Delete Account
+              <Button variant="destructive" className="w-full justify-start" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
               </Button>
             </CardContent>
           </Card>

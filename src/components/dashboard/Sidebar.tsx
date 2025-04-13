@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
@@ -10,9 +10,12 @@ import {
   BarChart3, 
   UserCircle, 
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { useUser } from '@/contexts/UserContext';
+import { useToast } from '@/components/ui/use-toast';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -28,6 +31,9 @@ interface SidebarItem {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isMobile }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useUser();
+  const { toast } = useToast();
   const currentPath = location.pathname;
   
   const sidebarItems: SidebarItem[] = [
@@ -42,6 +48,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isMobile }) =>
   const isActive = (path: string) => {
     return currentPath === path || 
       (path !== '/' && currentPath.startsWith(path));
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account",
+    });
+    navigate('/login');
+  };
+
+  // Get first letter of each word in full name for avatar
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('');
   };
 
   return (
@@ -116,15 +136,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isMobile }) =>
             !isOpen && !isMobile && "justify-center"
           )}>
             <div className="w-8 h-8 rounded-full bg-teal flex items-center justify-center">
-              <span className="text-white font-bold text-sm">JS</span>
+              <span className="text-white font-bold text-sm">{getInitials(user.fullName)}</span>
             </div>
             <div className={cn(
-              "transition-opacity", 
+              "transition-opacity flex-1", 
               !isOpen && !isMobile ? "opacity-0 w-0" : "opacity-100"
             )}>
-              <p className="text-sm font-medium">John Smith</p>
-              <p className="text-xs text-muted-foreground">Student</p>
+              <p className="text-sm font-medium">{user.fullName}</p>
+              <p className="text-xs text-muted-foreground">{user.role}</p>
             </div>
+            {isOpen && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout}
+                title="Logout"
+              >
+                <LogOut size={20} />
+              </Button>
+            )}
           </div>
         </div>
       </aside>
