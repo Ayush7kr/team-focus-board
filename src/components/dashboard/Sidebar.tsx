@@ -8,7 +8,7 @@ import {
   Calendar, 
   Users, 
   BarChart3, 
-  Settings, 
+  UserCircle, 
   Menu,
   X
 } from 'lucide-react';
@@ -36,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isMobile }) =>
     { title: 'Calendar', icon: Calendar, path: '/calendar' },
     { title: 'Team', icon: Users, path: '/team' },
     { title: 'Analytics', icon: BarChart3, path: '/analytics' },
-    { title: 'Settings', icon: Settings, path: '/settings' },
+    { title: 'Profile', icon: UserCircle, path: '/profile' },
   ];
 
   const isActive = (path: string) => {
