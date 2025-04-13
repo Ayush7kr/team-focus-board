@@ -1,7 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format, addDays, subDays } from 'date-fns';
 import { Filter, Plus, ListFilter } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import TaskCard, { TaskProps, TaskStatus } from '@/components/dashboard/TaskCard';
@@ -26,10 +28,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Tasks = () => {
+  const [searchParams] = useSearchParams();
+  const taskId = searchParams.get('id');
+  
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null);
   
   const [tasks, setTasks] = useState<TaskProps[]>([
     {
@@ -101,6 +107,37 @@ const Tasks = () => {
       status: 'pending',
     },
   ]);
+
+  // Handle task highlighting based on URL params
+  useEffect(() => {
+    if (taskId) {
+      setHighlightedTaskId(taskId);
+      
+      // Find the task to show in toast notification
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        toast({
+          title: "Task Located",
+          description: `Viewing task: ${task.title}`,
+        });
+        
+        // Scroll to the task if needed (in a real app you might use a ref)
+        setTimeout(() => {
+          const element = document.getElementById(`task-${taskId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      }
+      
+      // Clear the highlight after a few seconds
+      const timer = setTimeout(() => {
+        setHighlightedTaskId(null);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [taskId, tasks]);
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter(task => {
@@ -226,11 +263,20 @@ const Tasks = () => {
         {filteredTasks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTasks.map(task => (
-              <TaskCard 
-                key={task.id} 
-                task={task} 
-                onStatusChange={handleStatusChange}
-              />
+              <div 
+                id={`task-${task.id}`} 
+                key={task.id}
+                className={`transition-all duration-500 ${
+                  highlightedTaskId === task.id 
+                    ? "ring-2 ring-primary ring-offset-2 scale-105" 
+                    : ""
+                }`}
+              >
+                <TaskCard 
+                  task={task} 
+                  onStatusChange={handleStatusChange}
+                />
+              </div>
             ))}
           </div>
         ) : (
