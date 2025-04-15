@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 
 interface UserContextType {
   user: UserData;
@@ -26,11 +27,33 @@ const defaultUserData: UserData = {
   avatarUrl: 'https://i.pravatar.cc/150?img=30'
 };
 
+// Keys for localStorage
+const USER_DATA_KEY = 'taskmaster_user_data';
+const USER_AUTH_KEY = 'taskmaster_auth_status';
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserData>(defaultUserData);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true); // Default to logged in for this example
+  // Initialize state from localStorage if available, otherwise use defaults
+  const [user, setUser] = useState<UserData>(() => {
+    const savedUser = localStorage.getItem(USER_DATA_KEY);
+    return savedUser ? JSON.parse(savedUser) : defaultUserData;
+  });
+  
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    const savedAuthStatus = localStorage.getItem(USER_AUTH_KEY);
+    return savedAuthStatus ? JSON.parse(savedAuthStatus) : true; // Default to logged in for this example
+  });
+
+  // Save to localStorage whenever user data changes
+  useEffect(() => {
+    localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+  }, [user]);
+
+  // Save to localStorage whenever auth status changes
+  useEffect(() => {
+    localStorage.setItem(USER_AUTH_KEY, JSON.stringify(isLoggedIn));
+  }, [isLoggedIn]);
 
   const updateUser = (data: Partial<UserData>) => {
     setUser(prev => ({ ...prev, ...data }));
